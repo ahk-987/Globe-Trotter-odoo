@@ -1,122 +1,101 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import { useState } from 'react';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { TripProvider } from './context/TripContext';
 
-function App() {
-  const [count, setCount] = useState(0)
+// Components
+import Navbar from './components/Navbar';
+import Sidebar from './components/Sidebar';
+import Toast from './components/Toast';
+
+// Pages
+import Login from './pages/Login';
+import Register from './pages/Register';
+import ForgotPassword from './pages/ForgotPassword';
+import Dashboard from './pages/Dashboard';
+import CreateTrip from './pages/CreateTrip';
+import MyTrips from './pages/MyTrips';
+import Itinerary from './pages/Itinerary';
+import Calendar from './pages/Calendar';
+import Budget from './pages/Budget';
+import SmartSummary from './pages/SmartSummary';
+import Community from './pages/Community';
+import Profile from './pages/Profile';
+import AdminDashboard from './pages/AdminDashboard';
+import PublicItinerary from './pages/PublicItinerary';
+
+const AppLayout = ({ children }) => {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const location = useLocation();
+
+  // Determine if this is a standalone public page or auth page
+  const isAuthPage = ['/login', '/register', '/forgot-password'].includes(location.pathname);
+  const isPublicTripPage = location.pathname.startsWith('/trips/');
+
+  if (isAuthPage || isPublicTripPage) {
+    return (
+      <div className="min-h-screen bg-slate-900 text-slate-100">
+        {children}
+        <Toast />
+      </div>
+    );
+  }
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+    <div className="min-h-screen bg-slate-50 flex flex-col font-sans selection:bg-teal-500 selection:text-white">
+      {/* Top Navigation */}
+      <Navbar onOpenMobileMenu={() => setMobileMenuOpen(true)} />
 
-      <div className="ticks"></div>
+      {/* Main Workspace Layout (Sidebar + Content) */}
+      <div className="flex flex-1 max-w-7xl w-full mx-auto">
+        {/* Desktop Sidebar & Mobile Drawer */}
+        <Sidebar
+          mobileOpen={mobileMenuOpen}
+          onCloseMobile={() => setMobileMenuOpen(false)}
+        />
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+        {/* Dynamic Page Content */}
+        <main className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8">
+          {children}
+        </main>
+      </div>
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+      {/* Global Notifications Toast */}
+      <Toast />
+    </div>
+  );
+};
+
+export function App() {
+  return (
+    <TripProvider>
+      <AppLayout>
+        <Routes>
+          {/* Public & Auth Routes */}
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/trips/:slug" element={<PublicItinerary />} />
+
+          {/* Authenticated Workspace Pages */}
+          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/my-trips" element={<MyTrips />} />
+          <Route path="/create-trip" element={<CreateTrip />} />
+          <Route path="/itinerary" element={<Itinerary />} />
+          <Route path="/itinerary/:id" element={<Itinerary />} />
+          <Route path="/calendar" element={<Calendar />} />
+          <Route path="/budget" element={<Budget />} />
+          <Route path="/summary" element={<SmartSummary />} />
+          <Route path="/community" element={<Community />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/admin" element={<AdminDashboard />} />
+
+          {/* Fallback */}
+          <Route path="*" element={<Navigate to="/dashboard" replace />} />
+        </Routes>
+      </AppLayout>
+    </TripProvider>
+  );
 }
 
-export default App
+export default App;
